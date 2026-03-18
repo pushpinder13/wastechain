@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { adminAPI } from '../services/api';
 import { BarChart, Bar, PieChart, Pie, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Cell, ResponsiveContainer } from 'recharts';
-import { TrendingUp, Users, Trash2, Award } from 'lucide-react';
+import { TrendingUp, Users, Trash2, Award, Download } from 'lucide-react';
 import Card from '../components/Card';
 import Sidebar from '../components/Sidebar';
+import toast from 'react-hot-toast';
 
 export default function AdminAnalytics() {
   const [analytics, setAnalytics] = useState(null);
@@ -18,9 +19,24 @@ export default function AdminAnalytics() {
       const { data } = await adminAPI.getAnalytics();
       setAnalytics(data);
     } catch (error) {
-      console.error('Error loading analytics:', error);
+      toast.error('Failed to load analytics');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleExportCSV = async () => {
+    try {
+      const { data } = await adminAPI.exportCSV();
+      const url = URL.createObjectURL(new Blob([data]));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'wastechain-export.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success('CSV exported!');
+    } catch {
+      toast.error('Export failed');
     }
   };
 
@@ -29,7 +45,12 @@ export default function AdminAnalytics() {
       <div className="flex">
         <Sidebar />
         <div className="flex-1 p-8">
-          <div className="text-center">Loading analytics...</div>
+          <div className="grid md:grid-cols-4 gap-6 mb-8">
+            {[...Array(4)].map((_, i) => <div key={i} className="animate-pulse bg-white dark:bg-gray-800 rounded-xl h-24 shadow" />)}
+          </div>
+          <div className="grid md:grid-cols-2 gap-6">
+            {[...Array(2)].map((_, i) => <div key={i} className="animate-pulse bg-white dark:bg-gray-800 rounded-xl h-80 shadow" />)}
+          </div>
         </div>
       </div>
     );
@@ -59,7 +80,12 @@ export default function AdminAnalytics() {
       <Sidebar />
       <div className="flex-1 p-8">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold mb-8">Analytics Dashboard</h1>
+          <div className="flex items-center justify-between mb-8">
+            <h1 className="text-3xl font-bold">Analytics Dashboard</h1>
+            <button onClick={handleExportCSV} className="btn btn-secondary flex items-center gap-2">
+              <Download className="w-4 h-4" /> Export CSV
+            </button>
+          </div>
 
           {/* Stats Grid */}
           <div className="grid md:grid-cols-4 gap-6 mb-8">

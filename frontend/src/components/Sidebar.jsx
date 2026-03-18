@@ -7,7 +7,8 @@ import {
   Users, 
   Award,
   Truck,
-  Building2
+  Building2,
+  UserCircle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -20,6 +21,7 @@ export default function Sidebar() {
     { to: '/submit-waste', icon: Trash2, label: 'Submit Waste' },
     { to: '/my-submissions', icon: QrCode, label: 'My Submissions' },
     { to: '/rewards', icon: Award, label: 'Rewards' },
+    { to: '/profile', icon: UserCircle, label: 'Profile' },
   ];
 
   const collectorLinks = [

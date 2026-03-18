@@ -2,6 +2,31 @@ const User = require('../models/User');
 const WasteSubmission = require('../models/WasteSubmission');
 const TraceabilityLog = require('../models/TraceabilityLog');
 
+// Export waste data as CSV
+exports.exportCSV = async (req, res) => {
+  try {
+    const waste = await WasteSubmission.find()
+      .populate('userId', 'name email')
+      .sort({ createdAt: -1 });
+
+    const rows = [
+      ['Waste ID', 'Category', 'Weight (kg)', 'Status', 'Points', 'Submitted By', 'Email', 'Date'],
+      ...waste.map(w => [
+        w.wasteId, w.category, w.weight, w.status, w.pointsAwarded,
+        w.userId?.name || '', w.userId?.email || '',
+        new Date(w.createdAt).toLocaleDateString()
+      ])
+    ];
+
+    const csv = rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename=wastechain-export.csv');
+    res.send(csv);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // Get dashboard analytics
 exports.getAnalytics = async (req, res) => {
   try {

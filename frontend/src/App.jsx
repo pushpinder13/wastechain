@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import LandingPage from './pages/LandingPage';
@@ -17,6 +18,7 @@ import FeaturesPage from './pages/FeaturesPage';
 import ContactPage from './pages/ContactPage';
 import PrivacyPage from './pages/PrivacyPage';
 import TermsPage from './pages/TermsPage';
+import ProfilePage from './pages/ProfilePage';
 
 // Protected Route Component
 function ProtectedRoute({ children, allowedRoles }) {
@@ -53,6 +55,7 @@ function App() {
     <AuthProvider>
       <Router>
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+          <Toaster position="top-right" />
           <Navbar />
           <Routes>
             <Route path="/" element={<LandingPage />} />
@@ -106,6 +109,15 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={['admin']}>
                   <AdminAnalytics />
+                </ProtectedRoute>
+              }
+            />
+            
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <ProfilePage />
                 </ProtectedRoute>
               }
             />

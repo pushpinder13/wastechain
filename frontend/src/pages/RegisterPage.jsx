@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { UserPlus } from 'lucide-react';
 import Button from '../components/Button';
+import toast from 'react-hot-toast';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -25,9 +26,12 @@ export default function RegisterPage() {
 
     try {
       await register(formData);
+      toast.success('Account created! Welcome to WasteChain 🌱');
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed');
+      const msg = err.response?.data?.message || 'Registration failed';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }

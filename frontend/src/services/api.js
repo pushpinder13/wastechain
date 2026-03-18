@@ -1,8 +1,13 @@
 import axios from 'axios';
+import { io } from 'socket.io-client';
+
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: `${BASE_URL}/api`,
 });
+
+export const socket = io(BASE_URL, { autoConnect: false });
 
 // Request interceptor to add token to headers
 api.interceptors.request.use((config) => {
@@ -18,6 +23,8 @@ export const authAPI = {
   register: (data) => api.post('/auth/register', data),
   login: (data) => api.post('/auth/login', data),
   getProfile: () => api.get('/auth/profile'),
+  updateProfile: (data) => api.put('/auth/profile', data),
+  changePassword: (data) => api.put('/auth/change-password', data),
 };
 
 
@@ -48,6 +55,7 @@ export const adminAPI = {
   getAllUsers: () => api.get('/admin/users'),
   approveRecycler: (id) => api.put(`/admin/users/${id}/approve`),
   getAllLogs: () => api.get('/admin/logs'),
+  exportCSV: () => api.get('/admin/export-csv', { responseType: 'blob' }),
 };
 
 export default api;

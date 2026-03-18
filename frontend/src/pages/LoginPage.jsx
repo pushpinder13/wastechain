@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { LogIn } from 'lucide-react';
 import Button from '../components/Button';
+import toast from 'react-hot-toast';
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -18,9 +19,12 @@ export default function LoginPage() {
 
     try {
       await login(formData.email, formData.password);
+      toast.success('Welcome back!');
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed');
+      const msg = err.response?.data?.message || 'Login failed';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }

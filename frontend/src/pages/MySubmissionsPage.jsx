@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { wasteAPI } from '../services/api';
-import { QrCode, Eye, Trash2, Calendar, Weight } from 'lucide-react';
+import { QrCode, Eye, Trash2, Calendar, Weight, Search } from 'lucide-react';
 import Card from '../components/Card';
 import Sidebar from '../components/Sidebar';
 import ConfirmationModal from '../components/ConfirmationModal';
+import toast from 'react-hot-toast';
 
 export default function MySubmissionsPage() {
   const { user } = useAuth();
@@ -13,6 +14,9 @@ export default function MySubmissionsPage() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submissionToDelete, setSubmissionToDelete] = useState(null);
+  const [search, setSearch] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+  const [filterCategory, setFilterCategory] = useState('');
 
   useEffect(() => {
     loadSubmissions();
@@ -21,9 +25,9 @@ export default function MySubmissionsPage() {
   const loadSubmissions = async () => {
     try {
       const { data } = await wasteAPI.getAll({ userId: user._id });
-      setSubmissions(data);
+      setSubmissions(data.waste || data);
     } catch (error) {
-      console.error('Error loading submissions:', error);
+      toast.error('Failed to load submissions');
     } finally {
       setLoading(false);
     }
@@ -39,8 +43,9 @@ export default function MySubmissionsPage() {
       try {
         await wasteAPI.delete(submissionToDelete);
         setSubmissions(submissions.filter((s) => s._id !== submissionToDelete));
+        toast.success('Submission deleted');
       } catch (error) {
-        console.error('Error deleting submission:', error);
+        toast.error('Failed to delete submission');
       } finally {
         setIsModalOpen(false);
         setSubmissionToDelete(null);
@@ -69,11 +74,22 @@ export default function MySubmissionsPage() {
       <div className="flex">
         <Sidebar />
         <div className="flex-1 p-8">
-          <div className="text-center">Loading...</div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="animate-pulse bg-white dark:bg-gray-800 rounded-xl h-64 shadow" />
+            ))}
+          </div>
         </div>
       </div>
     );
   }
+
+  const filtered = submissions.filter(w => {
+    const matchSearch = !search || w.wasteId.toLowerCase().includes(search.toLowerCase()) || w.description?.toLowerCase().includes(search.toLowerCase());
+    const matchStatus = !filterStatus || w.status === filterStatus;
+    const matchCategory = !filterCategory || w.category === filterCategory;
+    return matchSearch && matchStatus && matchCategory;
+  });
 
   return (
     <div className="flex">
@@ -82,12 +98,26 @@ export default function MySubmissionsPage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white">My Submissions</h1>
-            <Link to="/submit-waste" className="btn btn-primary">
-              Submit New Waste
-            </Link>
+            <Link to="/submit-waste" className="btn btn-primary">Submit New Waste</Link>
           </div>
 
-          {submissions.length === 0 ? (
+          {/* Search & Filter */}
+          <div className="flex flex-wrap gap-3 mb-6">
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input className="input pl-9" placeholder="Search by ID or description..." value={search} onChange={e => setSearch(e.target.value)} />
+            </div>
+            <select className="input w-auto" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
+              <option value="">All Statuses</option>
+              {['Submitted','Pickup Scheduled','Collected','Delivered to Recycler','Recycled'].map(s => <option key={s}>{s}</option>)}
+            </select>
+            <select className="input w-auto" value={filterCategory} onChange={e => setFilterCategory(e.target.value)}>
+              <option value="">All Categories</option>
+              {['Plastic','Paper','Metal','Glass','E-waste'].map(c => <option key={c}>{c}</option>)}
+            </select>
+          </div>
+
+          {filtered.length === 0 ? (
             <Card>
               <div className="text-center py-16">
                 <QrCode className="w-20 h-20 text-gray-400 mx-auto mb-6" />
@@ -102,7 +132,7 @@ export default function MySubmissionsPage() {
             </Card>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {submissions.map((waste) => (
+              {filtered.map((waste) => (
                 <Card key={waste._id} className="flex flex-col justify-between hover:shadow-2xl transition-shadow duration-300">
                   <div>
                     {waste.imageUrl && (

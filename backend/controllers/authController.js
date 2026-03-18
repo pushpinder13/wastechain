@@ -1,5 +1,18 @@
 const jwt = require('jsonwebtoken');
+const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
+
+exports.validateRegister = [
+  body('name').trim().notEmpty().withMessage('Name is required'),
+  body('email').isEmail().withMessage('Valid email is required').normalizeEmail(),
+  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+  body('role').optional().isIn(['citizen', 'collector', 'recycler']).withMessage('Invalid role'),
+];
+
+exports.validateLogin = [
+  body('email').isEmail().withMessage('Valid email is required').normalizeEmail(),
+  body('password').notEmpty().withMessage('Password is required'),
+];
 
 // Generate JWT token
 const generateToken = (id) => {
@@ -10,6 +23,10 @@ const generateToken = (id) => {
 
 // Register user
 exports.register = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ message: errors.array()[0].msg });
+  }
   try {
     const { name, email, password, role, phone, address } = req.body;
 
@@ -46,6 +63,10 @@ exports.register = async (req, res) => {
 
 // Login user
 exports.login = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ message: errors.array()[0].msg });
+  }
   try {
     const { email, password } = req.body;
 
@@ -86,6 +107,41 @@ exports.getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select('-password');
     res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Update profile
+exports.updateProfile = async (req, res) => {
+  try {
+    const { name, phone, address } = req.body;
+    const update = {};
+    if (name) update.name = name;
+    if (phone) update.phone = phone;
+    if (address) update.address = address;
+    if (req.file) update.avatar = `/uploads/${req.file.filename}`;
+
+    const user = await User.findByIdAndUpdate(req.user._id, update, { new: true }).select('-password');
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Change password
+exports.changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ message: 'New password must be at least 6 characters' });
+    }
+    const user = await User.findById(req.user._id);
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) return res.status(400).json({ message: 'Current password is incorrect' });
+    user.password = newPassword;
+    await user.save();
+    res.json({ message: 'Password updated successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

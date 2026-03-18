@@ -121,28 +121,32 @@ exports.createWaste = async (req, res) => {
   }
 };
 
-// Get all waste submissions (with filters)
+// Get all waste submissions (with filters + pagination)
 exports.getAllWaste = async (req, res) => {
   try {
-    const { status, category, userId, limit } = req.query;
+    const { status, category, userId, search, page = 1, limit = 10 } = req.query;
     const filter = {};
 
     if (status) filter.status = status;
     if (category) filter.category = category;
     if (userId) filter.userId = userId;
+    if (search) filter.$or = [
+      { wasteId: { $regex: search, $options: 'i' } },
+      { description: { $regex: search, $options: 'i' } }
+    ];
 
-    let query = WasteSubmission.find(filter)
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const total = await WasteSubmission.countDocuments(filter);
+
+    const waste = await WasteSubmission.find(filter)
       .populate('userId', 'name email')
       .populate('collectorId', 'name phone')
       .populate('recyclerId', 'name')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
 
-    if (limit) {
-      query = query.limit(parseInt(limit));
-    }
-
-    const waste = await query;
-    res.json(waste);
+    res.json({ waste, total, page: parseInt(page), pages: Math.ceil(total / parseInt(limit)) });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -180,9 +184,7 @@ exports.updateWasteStatus = async (req, res) => {
         return res.status(404).json({ message: 'Waste not found' });
       }
 
-      // Save the original status to check if it has changed
       const originalStatus = waste.status;
-
       waste.status = status;
       waste.updatedAt = new Date();
 
@@ -191,10 +193,8 @@ exports.updateWasteStatus = async (req, res) => {
 
       await waste.save();
 
-      // Only create a log if the status has actually changed
       if (originalStatus !== status) {
         const lastLog = await TraceabilityLog.findOne({ wasteId: waste.wasteId }).sort({ timestamp: -1 });
-        
         await TraceabilityLog.create({
           wasteId: waste.wasteId,
           action: `Status Updated to ${status}`,
@@ -203,21 +203,26 @@ exports.updateWasteStatus = async (req, res) => {
           previousHash: lastLog ? lastLog.currentHash : '0',
           metadata: { status }
         });
+
+        // Real-time notification to waste owner
+        const io = req.app.get('io');
+        if (io) {
+          io.to(waste.userId.toString()).emit('wasteStatusUpdate', {
+            wasteId: waste.wasteId,
+            status,
+            message: `Your waste ${waste.wasteId} status updated to: ${status}`
+          });
+        }
       }
 
       return res.json(waste);
 
     } catch (error) {
-      if (error.code === 11000 && error.keyPattern && error.keyPattern['wasteId'] === 1 && error.keyPattern['previousHash'] === 1) {
-        // Duplicate key error, likely a race condition
+      if (error.code === 11000 && error.keyPattern?.['wasteId'] === 1) {
         retries--;
-        if (retries === 0) {
-          return res.status(500).json({ message: 'Failed to update traceability log after multiple attempts. Please try again.' });
-        }
-        // Wait for a short period before retrying
+        if (retries === 0) return res.status(500).json({ message: 'Failed after multiple attempts. Please try again.' });
         await new Promise(resolve => setTimeout(resolve, 50));
       } else {
-        // Other error
         return res.status(500).json({ message: error.message });
       }
     }
