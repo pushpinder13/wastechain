@@ -19,6 +19,9 @@ import ContactPage from './pages/ContactPage';
 import PrivacyPage from './pages/PrivacyPage';
 import TermsPage from './pages/TermsPage';
 import ProfilePage from './pages/ProfilePage';
+import PickupsPage from './pages/PickupsPage';
+import MyCollectionsPage from './pages/MyCollectionsPage';
+import IncomingWastePage from './pages/IncomingWastePage';
 
 // Protected Route Component
 function ProtectedRoute({ children, allowedRoles }) {
@@ -118,6 +121,31 @@ function App() {
               element={
                 <ProtectedRoute>
                   <ProfilePage />
+                </ProtectedRoute>
+              }
+            />
+            
+            <Route
+              path="/pickups"
+              element={
+                <ProtectedRoute allowedRoles={['collector']}>
+                  <PickupsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/my-collections"
+              element={
+                <ProtectedRoute allowedRoles={['collector']}>
+                  <MyCollectionsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/incoming-waste"
+              element={
+                <ProtectedRoute allowedRoles={['recycler']}>
+                  <IncomingWastePage />
                 </ProtectedRoute>
               }
             />

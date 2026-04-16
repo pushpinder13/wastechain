@@ -20,17 +20,17 @@ export default function CitizenDashboard() {
   const loadData = async () => {
     try {
       const { data } = await wasteAPI.getAll({ userId: user._id });
-      setRecentWaste(data.slice(0, 3));
+      setRecentWaste((data.waste || data).slice(0, 3));
       
-      const recycledCount = data.filter(w => w.status === 'Recycled').length;
+      const allWaste = data.waste || data;
+      const recycledCount = allWaste.filter(w => w.status === 'Recycled').length;
       setStats({
-        total: data.length,
+        total: allWaste.length,
         points: user.points,
         recycled: recycledCount
       });
 
-      // Process data for the chart
-      const categoryCounts = data.reduce((acc, waste) => {
+      const categoryCounts = allWaste.reduce((acc, waste) => {
         acc[waste.category] = (acc[waste.category] || 0) + 1;
         return acc;
       }, {});

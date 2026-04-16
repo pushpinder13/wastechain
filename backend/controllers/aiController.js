@@ -21,7 +21,7 @@ exports.analyzeWasteImage = async (req, res) => {
       return res.status(400).json({ message: 'No image uploaded' });
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-pro-vision" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const prompt = `
     Analyze the image of waste and identify the material. 

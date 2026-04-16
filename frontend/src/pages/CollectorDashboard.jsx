@@ -26,8 +26,8 @@ export default function CollectorDashboard() {
         wasteAPI.getAll({ collectorId: user._id, status: 'Pickup Scheduled' }),
         wasteAPI.getCollectorStats(),
       ]);
-      setNearbyWaste(nearbyRes.data);
-      setScheduledPickups(scheduledRes.data);
+      setNearbyWaste(nearbyRes.data.waste || nearbyRes.data);
+      setScheduledPickups(scheduledRes.data.waste || scheduledRes.data);
       setStats(statsRes.data);
     } catch (error) {
       console.error('Error loading data:', error);

@@ -9,7 +9,7 @@ import Sidebar from '../components/Sidebar';
 
 export default function SubmitWastePage() {
   const navigate = useNavigate();
-  const { updateUser } = useAuth();
+  const { setUser } = useAuth();
   const [formData, setFormData] = useState({
     category: 'Plastic',
     weight: '',
@@ -75,7 +75,7 @@ export default function SubmitWastePage() {
 
       // Refetch user profile to update points
       const { data: updatedUser } = await authAPI.getProfile();
-      updateUser(updatedUser);
+      setUser(updatedUser);
       
       navigate('/my-submissions');
     } catch (error) {
