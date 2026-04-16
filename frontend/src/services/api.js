@@ -23,7 +23,11 @@ export const authAPI = {
   register: (data) => api.post('/auth/register', data),
   login: (data) => api.post('/auth/login', data),
   getProfile: () => api.get('/auth/profile'),
-  updateProfile: (data) => api.put('/auth/profile', data),
+  updateProfile: (data) => {
+    const form = new FormData();
+    Object.entries(data).forEach(([k, v]) => { if (v !== undefined && v !== null) form.append(k, v); });
+    return api.put('/auth/profile', form, { headers: { 'Content-Type': 'multipart/form-data' } });
+  },
   changePassword: (data) => api.put('/auth/change-password', data),
 };
 
@@ -53,6 +57,7 @@ export const aiAPI = {
 export const adminAPI = {
   getAnalytics: () => api.get('/admin/analytics'),
   getAllUsers: () => api.get('/admin/users'),
+  deleteUser: (id) => api.delete(`/admin/users/${id}`),
   approveRecycler: (id) => api.put(`/admin/users/${id}/approve`),
   getAllLogs: () => api.get('/admin/logs'),
   exportCSV: () => api.get('/admin/export-csv', { responseType: 'blob' }),

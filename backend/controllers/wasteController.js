@@ -46,7 +46,9 @@ const calculatePoints = (category, weight) => {
     'Paper': 8,
     'Metal': 20,
     'Glass': 12,
-    'E-waste': 25
+    'E-waste': 25,
+    'Organic': 5,
+    'Other': 5
   };
   return (pointsMap[category] || 10) * Math.ceil(weight);
 };
@@ -124,12 +126,14 @@ exports.createWaste = async (req, res) => {
 // Get all waste submissions (with filters + pagination)
 exports.getAllWaste = async (req, res) => {
   try {
-    const { status, category, userId, search, page = 1, limit = 10 } = req.query;
+    const { status, category, userId, collectorId, recyclerId, search, page = 1, limit = 10 } = req.query;
     const filter = {};
 
     if (status) filter.status = status;
     if (category) filter.category = category;
     if (userId) filter.userId = userId;
+    if (collectorId) filter.collectorId = collectorId;
+    if (recyclerId) filter.recyclerId = recyclerId;
     if (search) filter.$or = [
       { wasteId: { $regex: search, $options: 'i' } },
       { description: { $regex: search, $options: 'i' } }

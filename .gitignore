@@ -4,6 +4,8 @@ backend/.env
 frontend/.env
 uploads/*
 !uploads/.gitkeep
+backend/uploads/*
+!backend/uploads/.gitkeep
 dist/
 build/
 .DS_Store

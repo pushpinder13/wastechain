@@ -22,7 +22,7 @@ export default function MyCollectionsPage() {
   useEffect(() => {
     const load = async () => {
       try {
-        const { data } = await wasteAPI.getAll({ collectorId: user._id, limit: 50 });
+        const { data } = await wasteAPI.getAll({ collectorId: user._id, page: 1, limit: 50 });
         setCollections(data.waste || data);
       } catch { toast.error('Failed to load collections'); }
       finally { setLoading(false); }

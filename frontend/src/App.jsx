@@ -22,6 +22,10 @@ import ProfilePage from './pages/ProfilePage';
 import PickupsPage from './pages/PickupsPage';
 import MyCollectionsPage from './pages/MyCollectionsPage';
 import IncomingWastePage from './pages/IncomingWastePage';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminUsersPage from './pages/AdminUsersPage';
+import AdminWastePage from './pages/AdminWastePage';
+import AdminLogsPage from './pages/AdminLogsPage';
 
 // Protected Route Component
 function ProtectedRoute({ children, allowedRoles }) {
@@ -45,11 +49,8 @@ function ProtectedRoute({ children, allowedRoles }) {
 // Dashboard Router
 function DashboardRouter() {
   const { user } = useAuth();
-
-  if (user?.role === 'collector') {
-    return <CollectorDashboard />;
-  }
-
+  if (user?.role === 'collector') return <CollectorDashboard />;
+  if (user?.role === 'admin') return <AdminDashboard />;
   return <CitizenDashboard />;
 }
 
@@ -146,6 +147,31 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={['recycler']}>
                   <IncomingWastePage />
+                </ProtectedRoute>
+              }
+            />
+            
+            <Route
+              path="/admin-users"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminUsersPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin-waste"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminWastePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin-logs"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AdminLogsPage />
                 </ProtectedRoute>
               }
             />

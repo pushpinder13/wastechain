@@ -13,7 +13,7 @@ const wasteSubmissionSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ['Plastic', 'Paper', 'Metal', 'Glass', 'E-waste'],
+    enum: ['Plastic', 'Paper', 'Metal', 'Glass', 'E-waste', 'Organic', 'Other'],
     required: true
   },
   weight: {

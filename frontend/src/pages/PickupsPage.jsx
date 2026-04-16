@@ -17,7 +17,7 @@ export default function PickupsPage() {
 
   const load = async () => {
     try {
-      const { data } = await wasteAPI.getAll({ status: 'Submitted', limit: 50 });
+      const { data } = await wasteAPI.getAll({ status: 'Submitted', page: 1, limit: 50 });
       setWaste(data.waste || data);
     } catch { toast.error('Failed to load pickups'); }
     finally { setLoading(false); }
