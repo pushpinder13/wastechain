@@ -87,6 +87,12 @@ export default function CitizenDashboard() {
                   <BarChart className="w-6 h-6 mr-2 text-primary-600"/>
                   Your Submissions by Category
                 </h2>
+                {chartData.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-48 text-gray-400">
+                    <BarChart className="w-12 h-12 mb-3 opacity-30" />
+                    <p className="text-sm">No submissions yet — start recycling to see your stats!</p>
+                  </div>
+                ) : (
                 <div style={{ height: '300px' }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <ReBarChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
@@ -105,6 +111,7 @@ export default function CitizenDashboard() {
                     </ReBarChart>
                   </ResponsiveContainer>
                 </div>
+                )}
               </Card>
 
               {user?.badges && user.badges.length > 0 && (
@@ -134,14 +141,23 @@ export default function CitizenDashboard() {
                 ) : (
                   <div className="space-y-4">
                     {recentWaste.map((waste) => (
-                      <Link to={`/track/${waste.wasteId}`} key={waste._id} className="block p-4 bg-gray-100 dark:bg-gray-800/50 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors">
-                        <div className="flex items-center justify-between">
-                            <p className="font-semibold text-sm text-gray-700 dark:text-gray-200">{waste.category} - {waste.weight}kg</p>
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[waste.status]}`}>
+                      <Link to={`/track/${waste.wasteId}`} key={waste._id} className="flex items-center gap-3 p-3 bg-gray-100 dark:bg-gray-800/50 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors">
+                        {waste.imageUrl ? (
+                          <img src={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${waste.imageUrl}`} alt={waste.category} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
+                        ) : (
+                          <div className="w-12 h-12 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
+                            <Package className="w-6 h-6 text-gray-400" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <p className="font-semibold text-sm text-gray-700 dark:text-gray-200 truncate">{waste.category} - {waste.weight}kg</p>
+                            <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${statusColors[waste.status]}`}>
                               {waste.status}
                             </span>
+                          </div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{new Date(waste.createdAt).toLocaleDateString()}</p>
                         </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{new Date(waste.createdAt).toLocaleDateString()}</p>
                       </Link>
                     ))}
                      <Link to="/my-submissions" className="inline-flex items-center text-sm font-medium text-primary-600 hover:text-primary-700 mt-4">

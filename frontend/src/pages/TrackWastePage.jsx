@@ -58,7 +58,7 @@ export default function TrackWastePage() {
             <div>
               {waste.imageUrl && (
                 <img
-                  src={waste.imageUrl}
+                  src={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${waste.imageUrl}`}
                   alt="Waste"
                   className="w-full h-64 object-cover rounded-lg mb-4"
                 />

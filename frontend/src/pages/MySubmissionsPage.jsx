@@ -137,7 +137,7 @@ export default function MySubmissionsPage() {
                   <div>
                     {waste.imageUrl && (
                       <img
-                        src={waste.imageUrl}
+                        src={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${waste.imageUrl}`}
                         alt="Waste"
                         className="w-full h-48 object-cover rounded-t-xl mb-4"
                       />
