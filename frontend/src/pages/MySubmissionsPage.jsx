@@ -24,7 +24,7 @@ export default function MySubmissionsPage() {
 
   const loadSubmissions = async () => {
     try {
-      const { data } = await wasteAPI.getAll({ userId: user._id });
+      const { data } = await wasteAPI.getAll({ userId: user._id, limit: 1000 });
       setSubmissions(data.waste || data);
     } catch (error) {
       toast.error('Failed to load submissions');

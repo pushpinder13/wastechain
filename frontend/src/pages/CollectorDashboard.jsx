@@ -6,12 +6,14 @@ import Card from '../components/Card';
 import Sidebar from '../components/Sidebar';
 import Button from '../components/Button';
 import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 export default function CollectorDashboard() {
   const { user } = useAuth();
   const [nearbyWaste, setNearbyWaste] = useState([]);
   const [scheduledPickups, setScheduledPickups] = useState([]);
-  const [stats, setStats] = useState({ collectionsToday: 0, totalEarnings: 0 });
+  const [collected, setCollected] = useState([]);
+  const [stats, setStats] = useState({ collectionsToday: 0, totalEarnings: 0, totalCollections: 0, totalWeight: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -21,13 +23,15 @@ export default function CollectorDashboard() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [nearbyRes, scheduledRes, statsRes] = await Promise.all([
+      const [nearbyRes, scheduledRes, collectedRes, statsRes] = await Promise.all([
         wasteAPI.getAll({ status: 'Submitted' }),
         wasteAPI.getAll({ collectorId: user._id, status: 'Pickup Scheduled' }),
+        wasteAPI.getAll({ collectorId: user._id, status: 'Collected' }),
         wasteAPI.getCollectorStats(),
       ]);
       setNearbyWaste(nearbyRes.data.waste || nearbyRes.data);
       setScheduledPickups(scheduledRes.data.waste || scheduledRes.data);
+      setCollected(collectedRes.data.waste || collectedRes.data);
       setStats(statsRes.data);
     } catch (error) {
       console.error('Error loading data:', error);
@@ -39,16 +43,17 @@ export default function CollectorDashboard() {
   const handleUpdateStatus = async (wasteId, status) => {
     try {
       await wasteAPI.updateStatus(wasteId, { status, collectorId: user._id });
-      loadData(); // Refresh all data
+      toast.success(`Status updated to ${status}`);
+      loadData();
     } catch (error) {
-      console.error(`Error updating status to ${status}:`, error);
-      alert(`Failed to update status. Please try again.`);
+      toast.error('Failed to update status. Please try again.');
     }
   };
 
   const statCards = [
     { icon: Truck, label: 'Available Pickups', value: nearbyWaste.length, color: 'text-blue-500' },
     { icon: CheckCircle, label: 'Collected Today', value: stats.collectionsToday, color: 'text-green-500' },
+    { icon: Package, label: 'Total Collections', value: stats.totalCollections, color: 'text-purple-500' },
     { icon: DollarSign, label: 'Total Earnings', value: `$${stats.totalEarnings.toFixed(2)}`, color: 'text-amber-500' },
   ];
 
@@ -95,12 +100,30 @@ export default function CollectorDashboard() {
             ))}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Available Pickups */}
+            <Card>
+              <h2 className="text-xl font-bold mb-4">Available for Pickup ({nearbyWaste.length})</h2>
+              {loading ? <p>Loading...</p> : nearbyWaste.length === 0 ? (
+                <p className="text-gray-500 dark:text-gray-400 text-center py-8">No new pickups available.</p>
+              ) : (
+                <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                  {nearbyWaste.map((waste) => (
+                    <WasteCard key={waste._id} waste={waste} action={
+                      <Button onClick={() => handleUpdateStatus(waste.wasteId, 'Pickup Scheduled')} variant="primary" size="sm">
+                        Accept
+                      </Button>
+                    }/>
+                  ))}
+                </div>
+              )}
+            </Card>
+
             {/* Scheduled Pickups */}
             <Card>
-              <h2 className="text-xl font-bold mb-4">My Scheduled Pickups ({scheduledPickups.length})</h2>
+              <h2 className="text-xl font-bold mb-4">Scheduled Pickups ({scheduledPickups.length})</h2>
               {loading ? <p>Loading...</p> : scheduledPickups.length === 0 ? (
-                <p className="text-gray-500 dark:text-gray-400 text-center py-8">No pickups scheduled. Accept one from the available list!</p>
+                <p className="text-gray-500 dark:text-gray-400 text-center py-8">No pickups scheduled yet.</p>
               ) : (
                 <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
                   {scheduledPickups.map((waste) => (
@@ -114,17 +137,17 @@ export default function CollectorDashboard() {
               )}
             </Card>
 
-            {/* Nearby Pickups */}
+            {/* Collected — Deliver to Recycler */}
             <Card>
-              <h2 className="text-xl font-bold mb-4">Available for Pickup ({nearbyWaste.length})</h2>
-              {loading ? <p>Loading...</p> : nearbyWaste.length === 0 ? (
-                <p className="text-gray-500 dark:text-gray-400 text-center py-8">No new pickups available right now.</p>
+              <h2 className="text-xl font-bold mb-4">Collected ({collected.length})</h2>
+              {loading ? <p>Loading...</p> : collected.length === 0 ? (
+                <p className="text-gray-500 dark:text-gray-400 text-center py-8">No collected waste to deliver yet.</p>
               ) : (
                 <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-                  {nearbyWaste.map((waste) => (
-                     <WasteCard key={waste._id} waste={waste} action={
-                      <Button onClick={() => handleUpdateStatus(waste.wasteId, 'Pickup Scheduled')} variant="primary" size="sm">
-                        Accept
+                  {collected.map((waste) => (
+                    <WasteCard key={waste._id} waste={waste} action={
+                      <Button onClick={() => handleUpdateStatus(waste.wasteId, 'Delivered to Recycler')} variant="primary" size="sm">
+                        Deliver
                       </Button>
                     }/>
                   ))}

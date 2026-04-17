@@ -8,6 +8,7 @@ const {
   getWasteTrace,
   getNearbyWaste,
   getCollectorStats,
+  getRecyclerStats,
   deleteWaste,
 } = require('../controllers/wasteController');
 const { protect, authorize } = require('../middleware/auth');
@@ -17,6 +18,7 @@ router.post('/', protect, authorize('citizen'), upload.single('image'), createWa
 router.get('/', protect, getAllWaste);
 router.get('/nearby', protect, authorize('collector'), getNearbyWaste);
 router.get('/stats/collector', protect, authorize('collector'), getCollectorStats);
+router.get('/stats/recycler', protect, authorize('recycler'), getRecyclerStats);
 router.get('/:id', getWasteById);
 router.delete('/:id', protect, deleteWaste);
 router.put('/:id/status', protect, updateWasteStatus);

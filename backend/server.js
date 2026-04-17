@@ -16,8 +16,8 @@ app.set('io', io);
 
 // Rate limiting on auth routes
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20,
+  windowMs: 15 * 60 * 1000,
+  max: process.env.NODE_ENV === 'development' ? 100 : 20,
   message: { message: 'Too many attempts, please try again after 15 minutes' }
 });
 

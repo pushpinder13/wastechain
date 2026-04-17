@@ -1,10 +1,16 @@
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { authAPI } from '../services/api';
 import { Award, Trophy, Star, Target } from 'lucide-react';
 import Card from '../components/Card';
 import Sidebar from '../components/Sidebar';
 
 export default function RewardsPage() {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
+
+  useEffect(() => {
+    authAPI.getProfile().then(({ data }) => setUser(data)).catch(() => {});
+  }, []);
 
   const levels = [
     { name: 'Eco Starter', minPoints: 0, color: 'bg-gray-500' },
@@ -116,6 +122,8 @@ export default function RewardsPage() {
                 { category: 'Metal', points: 20 },
                 { category: 'Glass', points: 12 },
                 { category: 'E-waste', points: 25 },
+                { category: 'Organic', points: 5 },
+                { category: 'Other', points: 5 },
               ].map((item, idx) => (
                 <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                   <span className="font-medium">{item.category}</span>

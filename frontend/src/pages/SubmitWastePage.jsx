@@ -6,6 +6,7 @@ import { Upload, Sparkles, Trash2, Check, X, Loader, Info, Recycle } from 'lucid
 import Button from '../components/Button';
 import Card from '../components/Card';
 import Sidebar from '../components/Sidebar';
+import toast from 'react-hot-toast';
 
 export default function SubmitWastePage() {
   const navigate = useNavigate();
@@ -49,7 +50,7 @@ export default function SubmitWastePage() {
       }
     } catch (error) {
       console.error('AI detection error:', error);
-      alert('AI analysis failed. Please try again or enter the details manually.');
+      toast.error('AI analysis failed. Please try again or enter details manually.');
     } finally {
       setAnalyzing(false);
     }
@@ -76,11 +77,10 @@ export default function SubmitWastePage() {
       // Refetch user profile to update points
       const { data: updatedUser } = await authAPI.getProfile();
       setUser(updatedUser);
-      
+      toast.success('Waste submitted! Points awarded 🎉');
       navigate('/my-submissions');
     } catch (error) {
-      console.error('Submission error:', error);
-      alert('Failed to submit waste');
+      toast.error(error.response?.data?.message || 'Failed to submit waste');
     } finally {
       setLoading(false);
     }

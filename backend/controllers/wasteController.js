@@ -272,21 +272,24 @@ exports.getCollectorStats = async (req, res) => {
 
     const collectionsToday = await WasteSubmission.countDocuments({
       collectorId,
-      status: 'Collected',
+      status: { $in: ['Collected', 'Delivered to Recycler', 'Recycled'] },
       updatedAt: { $gte: today }
     });
 
+    // Total earnings = all waste this collector ever collected (any status after Collected)
     const totalEarnings = await WasteSubmission.aggregate([
       {
         $match: {
           collectorId: collectorId,
-          status: 'Collected'
+          status: { $in: ['Collected', 'Delivered to Recycler', 'Recycled'] }
         }
       },
       {
         $group: {
           _id: null,
-          total: { $sum: { $multiply: ['$weight', 0.5] } } // Example: $0.5 per kg
+          total: { $sum: { $multiply: ['$weight', 0.5] } },
+          totalCollections: { $sum: 1 },
+          totalWeight: { $sum: '$weight' }
         }
       }
     ]);
@@ -294,6 +297,37 @@ exports.getCollectorStats = async (req, res) => {
     res.json({
       collectionsToday,
       totalEarnings: totalEarnings[0]?.total || 0,
+      totalCollections: totalEarnings[0]?.totalCollections || 0,
+      totalWeight: totalEarnings[0]?.totalWeight || 0,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get recycler statistics
+exports.getRecyclerStats = async (req, res) => {
+  try {
+    const recyclerId = req.user._id;
+
+    const totalRecycled = await WasteSubmission.countDocuments({ recyclerId, status: 'Recycled' });
+    const incoming = await WasteSubmission.countDocuments({ status: 'Delivered to Recycler' });
+
+    const weightStats = await WasteSubmission.aggregate([
+      { $match: { recyclerId: recyclerId, status: 'Recycled' } },
+      { $group: { _id: null, totalWeight: { $sum: '$weight' } } }
+    ]);
+
+    const byCategory = await WasteSubmission.aggregate([
+      { $match: { recyclerId: recyclerId, status: 'Recycled' } },
+      { $group: { _id: '$category', count: { $sum: 1 }, weight: { $sum: '$weight' } } }
+    ]);
+
+    res.json({
+      totalRecycled,
+      incoming,
+      totalWeight: weightStats[0]?.totalWeight || 0,
+      byCategory
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

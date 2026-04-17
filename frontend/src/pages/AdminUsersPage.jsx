@@ -102,7 +102,7 @@ export default function AdminUsersPage() {
                         <td className="px-6 py-4">
                           <span className={`px-2 py-1 rounded-full text-xs font-semibold ${roleBadge[u.role]}`}>{u.role}</span>
                         </td>
-                        <td className="px-6 py-4 font-medium text-gray-700 dark:text-gray-300">{u.points}</td>
+                        <td className="px-6 py-4 font-medium text-gray-700 dark:text-gray-300">{u.role === 'citizen' ? u.points : '—'}</td>
                         <td className="px-6 py-4">
                           {u.role === 'recycler' ? (
                             <span className={`px-2 py-1 rounded-full text-xs font-semibold ${u.isApproved ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'}`}>

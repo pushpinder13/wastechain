@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { wasteAPI } from '../services/api';
+import { wasteAPI, authAPI } from '../services/api';
 import { Trash2, Award, TrendingUp, Package, BarChart, ExternalLink } from 'lucide-react';
 import { Bar, BarChart as ReBarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 import Card from '../components/Card';
@@ -8,7 +8,7 @@ import Sidebar from '../components/Sidebar';
 import { Link } from 'react-router-dom';
 
 export default function CitizenDashboard() {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const [stats, setStats] = useState({ total: 0, points: 0, recycled: 0 });
   const [chartData, setChartData] = useState([]);
   const [recentWaste, setRecentWaste] = useState([]);
@@ -19,22 +19,28 @@ export default function CitizenDashboard() {
 
   const loadData = async () => {
     try {
-      const { data } = await wasteAPI.getAll({ userId: user._id });
-      setRecentWaste((data.waste || data).slice(0, 3));
-      
-      const allWaste = data.waste || data;
+      const [wasteRes, profileRes] = await Promise.all([
+        wasteAPI.getAll({ userId: user._id, limit: 1000 }),
+        authAPI.getProfile()
+      ]);
+
+      const allWaste = wasteRes.data.waste || wasteRes.data;
+      setRecentWaste(allWaste.slice(0, 3));
+
       const recycledCount = allWaste.filter(w => w.status === 'Recycled').length;
       setStats({
         total: allWaste.length,
-        points: user.points,
+        points: profileRes.data.points,
         recycled: recycledCount
       });
+
+      // update user in context with fresh data
+      setUser(profileRes.data);
 
       const categoryCounts = allWaste.reduce((acc, waste) => {
         acc[waste.category] = (acc[waste.category] || 0) + 1;
         return acc;
       }, {});
-
       setChartData(Object.keys(categoryCounts).map(key => ({ name: key, count: categoryCounts[key] })));
 
     } catch (error) {

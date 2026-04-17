@@ -33,8 +33,13 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    socket.on('wasteStatusUpdate', ({ message }) => {
+    socket.on('wasteStatusUpdate', async ({ message }) => {
       toast.success(message, { duration: 5000 });
+      // Refresh user profile to get updated points and level
+      try {
+        const { data } = await authAPI.getProfile();
+        setUser(data);
+      } catch {}
     });
     return () => socket.off('wasteStatusUpdate');
   }, []);

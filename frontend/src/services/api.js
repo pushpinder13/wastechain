@@ -44,6 +44,7 @@ export const wasteAPI = {
   getTrace: (id) => api.get(`/waste/${id}/trace`),
   getNearby: () => api.get('/waste/nearby'),
   getCollectorStats: () => api.get('/waste/stats/collector'),
+  getRecyclerStats: () => api.get('/waste/stats/recycler'),
 };
 
 // AI API
