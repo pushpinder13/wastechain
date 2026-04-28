@@ -1,328 +1,224 @@
 # WasteChain - Smart Recycling Traceability Platform
 
-A complete full-stack SaaS application for tracking recyclable waste from citizens to recycling centers with QR codes, AI detection, blockchain-style traceability, and gamification.
+WasteChain is a full-stack traceability platform for recyclable waste management. It connects citizens, collectors, recyclers, and admins with photo-backed submissions, AI-assisted classification, QR tracking, realtime updates, and blockchain-style audit logs.
 
-## 🚀 Features
+## ?? Core Features
 
-- **User Authentication** - JWT-based auth with role-based access (Citizen, Collector, Recycler, Admin)
-- **Waste Submission** - Upload waste with photos and auto-generate QR codes
-- **AI Waste Detection** - Mock AI model to classify waste types
-- **QR Code Tracking** - Track waste lifecycle with unique QR codes
-- **Blockchain Traceability** - Immutable logs with hash chains
-- **Gamification** - Points, levels, and badges for recycling
-- **Analytics Dashboard** - Admin panel with charts and statistics
-- **Dark Mode** - Toggle between light and dark themes
-- **Responsive Design** - Works on all devices
+- Role-based access control for `citizen`, `collector`, `recycler`, and `admin`
+- Citizen waste submission with image upload, category, weight, description, and pickup address
+- Automatic QR code generation for every waste submission
+- AI image analysis using Google Gemini for waste type prediction and disposal guidance
+- Points, levels, and badges to gamify recycling behavior
+- Collector dashboard for nearby pickups, collections, and earnings statistics
+- Recycler workflow for incoming waste, delivery handling, and recycling stats
+- Admin analytics, user management, recycler approval, traceability logs, and CSV export
+- Blockchain-style traceability logs with SHA-256 hash chaining
+- Real-time status notifications with Socket.IO
+- Dark mode UI support via frontend theme toggle
+- Responsive design with Tailwind CSS
 
-## 🛠️ Tech Stack
+## ??? Tech Stack
 
 ### Frontend
 - React.js with Vite
 - Tailwind CSS
-- Lucide React Icons
-- Recharts for analytics
-- Axios for API calls
+- React Router DOM
+- Axios
+- Socket.IO client
+- Recharts
+- react-hot-toast
+- Lucide React icons
 
 ### Backend
 - Node.js with Express
 - MongoDB with Mongoose
-- JWT Authentication
-- Multer for file uploads
-- QRCode generation
+- JWT authentication
+- Multer file uploads
+- Google Gemini AI integration via `@google/generative-ai`
+- Socket.IO realtime communication
+- Express rate limiting on auth endpoints
 
-## 📋 Prerequisites
+## ?? Prerequisites
 
-- Node.js (v16 or higher)
+- Node.js v16 or higher
 - MongoDB (local or Atlas)
-- npm or yarn
+- npm
 
-## 🔧 Installation & Setup
+## ?? Setup
 
-### 1. Install MongoDB (if not installed)
-
-Download and install MongoDB from: https://www.mongodb.com/try/download/community
-
-Or use MongoDB Atlas (cloud): https://www.mongodb.com/cloud/atlas
-
-### 2. Install Backend Dependencies
+### 1. Install backend dependencies
 
 ```bash
 cd backend
 npm install
 ```
 
-### 3. Install Frontend Dependencies
+### 2. Install frontend dependencies
 
 ```bash
 cd frontend
 npm install
 ```
 
-### 4. Configure Environment Variables
+### 3. Configure backend environment
 
-The `.env` file is already created in the backend folder. Make sure MongoDB is running on the default port (27017).
+Create or update `backend/.env` with the following values:
 
-If using MongoDB Atlas, update the `MONGODB_URI` in `backend/.env`:
-
-```
-MONGODB_URI=your_mongodb_atlas_connection_string
-```
-
-## 🚀 Running the Application
-
-### Start MongoDB (if using local installation)
-
-Open a new terminal and run:
-```bash
-mongod
+```env
+PORT=5000
+MONGODB_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
+NODE_ENV=development
+GEMINI_API_KEY=your_google_gemini_api_key  # optional, only if using AI waste analysis
 ```
 
-### Start Backend Server
+### 4. Configure frontend API URL (optional)
 
-Open a terminal in the backend folder:
+If your backend runs somewhere other than `http://localhost:5000`, create `frontend/.env` with:
+
+```env
+VITE_API_URL=http://your-backend-host:5000
+```
+
+The frontend defaults to `http://localhost:5000` when `VITE_API_URL` is not set.
+
+## ?? Running the Application
+
+### Start backend
+
 ```bash
 cd backend
 npm run dev
 ```
 
-Backend will run on: http://localhost:5000
+### Start frontend
 
-### Start Frontend Development Server
-
-Open another terminal in the frontend folder:
 ```bash
 cd frontend
 npm run dev
 ```
 
-Frontend will run on: http://localhost:3000
+Open the frontend at: `http://localhost:3000`
 
-## 🌐 Access the Application
+## ?? API Endpoints
 
-Open your browser and go to: **http://localhost:3000**
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/auth/profile`
+- `PUT /api/auth/profile`
+- `PUT /api/auth/change-password`
+- `POST /api/waste`
+- `GET /api/waste`
+- `GET /api/waste/nearby`
+- `GET /api/waste/:id`
+- `PUT /api/waste/:id/status`
+- `DELETE /api/waste/:id`
+- `GET /api/waste/:id/trace`
+- `POST /api/ai/analyze-image`
+- `GET /api/admin/analytics`
+- `GET /api/admin/users`
+- `DELETE /api/admin/users/:id`
+- `PUT /api/admin/users/:id/approve`
+- `GET /api/admin/logs`
+- `GET /api/admin/export-csv`
+- `GET /api/health`
 
-## 👥 Test Accounts
+## ?? Roles and Workflows
 
-You can register new accounts with different roles:
+### Citizen
+- Create an account with the `Citizen` role
+- Submit waste with photo, weight, category, and pickup address
+- Optionally use AI image analysis to suggest category and disposal instructions
+- Earn points, rank up levels, and collect badges
+- Track waste progress and view traceability logs
 
-### Create Admin Account (Manual)
-After registering a user, you can manually update their role to 'admin' in MongoDB:
+### Collector
+- Register as a `Collector`
+- View nearby submissions waiting for pickup
+- Update waste status throughout the collection workflow
+- See collector-specific stats and earnings
 
-1. Open MongoDB Compass or mongo shell
-2. Find the user in the `users` collection
-3. Update the `role` field to `"admin"`
+### Recycler
+- Register as a `Recycler`
+- Recycler accounts are created with `isApproved=false` by default
+- Admin approval is required before a recycler can fully access the app
+- View incoming waste and recycling statistics
 
-### Test Flow
+### Admin
+- Admin users are not created through the public registration page
+- Create or upgrade an admin user manually in MongoDB
+- Access analytics, user management, recycler approval, logs, and CSV export
 
-1. **Register as Citizen**
-   - Go to Register page
-   - Select "Citizen" role
-   - Fill in details and register
+## ?? Notes
 
-2. **Submit Waste**
-   - Login as citizen
-   - Go to "Submit Waste"
-   - Upload waste photo
-   - Use AI detection (optional)
-   - Submit waste
-   - Get QR code
+- Uploaded files and generated QR codes are served from `backend/uploads`
+- The frontend proxies `/api` and `/uploads` to the backend in `frontend/vite.config.js`
+- Auth routes are rate limited: 100 requests in development, 20 in production
+- Waste IDs are generated as `WC-<timestamp>-<random>` and recorded on submissions
+- Traceability logs use SHA-256 hashing for blockchain-style audit chaining
+- AI image inference is optional and depends on a valid `GEMINI_API_KEY`
 
-3. **Register as Collector**
-   - Register another account with "Collector" role
-   - View nearby waste pickups
-   - Accept and collect waste
-
-4. **Track Waste**
-   - Use the QR code or waste ID to track
-   - View blockchain-style traceability logs
-
-5. **View Analytics (Admin)**
-   - Login as admin
-   - View analytics dashboard with charts
-
-## 📁 Project Structure
+## ?? Project Structure
 
 ```
 wastechain/
-├── backend/
-│   ├── controllers/
-│   │   ├── authController.js
-│   │   ├── wasteController.js
-│   │   ├── aiController.js
-│   │   └── adminController.js
-│   ├── models/
-│   │   ├── User.js
-│   │   ├── WasteSubmission.js
-│   │   └── TraceabilityLog.js
-│   ├── routes/
-│   │   ├── auth.js
-│   │   ├── waste.js
-│   │   ├── ai.js
-│   │   └── admin.js
-│   ├── middleware/
-│   │   ├── auth.js
-│   │   └── upload.js
-│   ├── uploads/
-│   ├── .env
-│   ├── package.json
-│   └── server.js
-│
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── Button.jsx
-│   │   │   ├── Card.jsx
-│   │   │   ├── Navbar.jsx
-│   │   │   └── Sidebar.jsx
-│   │   ├── pages/
-│   │   │   ├── LandingPage.jsx
-│   │   │   ├── LoginPage.jsx
-│   │   │   ├── RegisterPage.jsx
-│   │   │   ├── CitizenDashboard.jsx
-│   │   │   ├── CollectorDashboard.jsx
-│   │   │   ├── SubmitWastePage.jsx
-│   │   │   ├── MySubmissionsPage.jsx
-│   │   │   ├── TrackWastePage.jsx
-│   │   │   ├── RewardsPage.jsx
-│   │   │   └── AdminAnalytics.jsx
-│   │   ├── context/
-│   │   │   └── AuthContext.jsx
-│   │   ├── services/
-│   │   │   └── api.js
-│   │   ├── App.jsx
-│   │   ├── main.jsx
-│   │   └── index.css
-│   ├── index.html
-│   ├── package.json
-│   ├── vite.config.js
-│   ├── tailwind.config.js
-│   └── postcss.config.js
-│
-└── README.md
++-- backend/
+�   +-- controllers/
+�   �   +-- adminController.js
+�   �   +-- aiController.js
+�   �   +-- authController.js
+�   �   +-- wasteController.js
+�   +-- middleware/
+�   �   +-- auth.js
+�   �   +-- upload.js
+�   +-- models/
+�   �   +-- TraceabilityLog.js
+�   �   +-- User.js
+�   �   +-- WasteSubmission.js
+�   +-- routes/
+�   �   +-- admin.js
+�   �   +-- ai.js
+�   �   +-- auth.js
+�   �   +-- waste.js
+�   +-- uploads/
+�   +-- .env
+�   +-- package.json
+�   +-- server.js
+�
++-- frontend/
+�   +-- src/
+�   �   +-- components/
+�   �   �   +-- Button.jsx
+�   �   �   +-- Card.jsx
+�   �   �   +-- ConfirmationModal.jsx
+�   �   �   +-- Navbar.jsx
+�   �   �   +-- Sidebar.jsx
+�   �   +-- context/
+�   �   �   +-- AuthContext.jsx
+�   �   +-- pages/
+�   �   �   +-- AdminAnalytics.jsx
+�   �   �   +-- AdminDashboard.jsx
+�   �   �   +-- AdminLogsPage.jsx
+�   �   �   +-- AdminUsersPage.jsx
+�   �   �   +-- CollectorDashboard.jsx
+�   �   �   +-- CitizenDashboard.jsx
+�   �   �   +-- IncomingWastePage.jsx
+�   �   �   +-- LoginPage.jsx
+�   �   �   +-- MyCollectionsPage.jsx
+�   �   �   +-- MySubmissionsPage.jsx
+�   �   �   +-- ProfilePage.jsx
+�   �   �   +-- RegisterPage.jsx
+�   �   �   +-- RewardsPage.jsx
+�   �   �   +-- SubmitWastePage.jsx
+�   �   �   +-- TrackWastePage.jsx
+�   �   �   +-- TermsPage.jsx
+�   �   �   +-- more pages...
+�   �   +-- services/
+�   �   �   +-- api.js
+�   �   +-- App.jsx
+�   �   +-- main.jsx
+�   +-- package.json
+�   +-- postcss.config.js
+�   +-- tailwind.config.js
+�   +-- vite.config.js
 ```
-
-## 🎯 Key Features Explained
-
-### 1. QR Code Generation
-Each waste submission automatically generates a unique QR code that can be scanned to track the waste lifecycle.
-
-### 2. AI Waste Detection
-Mock AI model that predicts waste type from uploaded images with confidence scores. In production, this would connect to a real ML model.
-
-### 3. Blockchain-Style Traceability
-Each action creates a log entry with:
-- Timestamp
-- User who performed action
-- Previous hash (linking to previous log)
-- Current hash (SHA-256)
-
-### 4. Gamification System
-- Points awarded based on waste category and weight
-- Levels: Eco Starter → Eco Warrior → Green Champion → Recycling Hero
-- Badges earned at milestones
-
-### 5. Role-Based Dashboards
-- **Citizen**: Submit waste, track submissions, view rewards
-- **Collector**: View nearby pickups, accept jobs, mark collected
-- **Recycler**: View incoming waste, process materials
-- **Admin**: Analytics, user management, system overview
-
-## 🔒 Security Features
-
-- Password hashing with bcrypt
-- JWT token authentication
-- Protected API routes
-- Role-based authorization
-- File upload validation
-
-## 📊 Analytics Features
-
-- Total waste collected
-- Waste distribution by category (Pie chart)
-- Waste status breakdown (Bar chart)
-- Monthly recycling trends (Line chart)
-- Top recyclers leaderboard
-
-## 🎨 UI Features
-
-- Modern SaaS design
-- Dark mode support
-- Responsive layout
-- Smooth animations
-- Gradient backgrounds
-- Status badges
-- Progress bars
-
-## 🐛 Troubleshooting
-
-### MongoDB Connection Error
-- Make sure MongoDB is running
-- Check the connection string in `.env`
-- Verify MongoDB port (default: 27017)
-
-### Port Already in Use
-- Backend: Change PORT in `backend/.env`
-- Frontend: Change port in `frontend/vite.config.js`
-
-### Module Not Found
-- Run `npm install` in both backend and frontend folders
-- Delete `node_modules` and `package-lock.json`, then reinstall
-
-### Image Upload Not Working
-- Make sure `backend/uploads` folder exists
-- Check file size limits in `backend/middleware/upload.js`
-
-## 📝 API Endpoints
-
-### Authentication
-- POST `/api/auth/register` - Register new user
-- POST `/api/auth/login` - Login user
-- GET `/api/auth/profile` - Get user profile
-
-### Waste Management
-- POST `/api/waste` - Create waste submission
-- GET `/api/waste` - Get all waste (with filters)
-- GET `/api/waste/:id` - Get waste by ID
-- PUT `/api/waste/:id/status` - Update waste status
-- GET `/api/waste/:id/trace` - Get traceability logs
-- GET `/api/waste/nearby` - Get nearby waste (collectors)
-
-### AI Detection
-- POST `/api/ai/detect-waste` - Detect waste type
-- POST `/api/ai/analyze-image` - Analyze waste image
-
-### Admin
-- GET `/api/admin/analytics` - Get analytics data
-- GET `/api/admin/users` - Get all users
-- PUT `/api/admin/users/:id/approve` - Approve recycler
-- GET `/api/admin/logs` - Get all traceability logs
-
-## 🌟 Future Enhancements
-
-- Real AI/ML model integration
-- Google Maps integration for pickup locations
-- Real-time notifications
-- Mobile app (React Native)
-- Payment integration for rewards
-- Social sharing features
-- Multi-language support
-
-## 📄 License
-
-MIT License - Free for educational and personal use
-
-## 👨‍💻 Author
-
-Created for student copyright project - Simple, clean, and well-documented code
-
-## 🙏 Acknowledgments
-
-- Unsplash for recycling images
-- Lucide for beautiful icons
-- Tailwind CSS for styling
-- MongoDB for database
-- React and Node.js communities
-
----
-
-**Happy Recycling! 🌱♻️**
