@@ -6,8 +6,6 @@ WasteChain - Smart Recycling Traceability Platform
 ## Team Members
 - Pushpinder Singh – 2210990693
 - Narinder Singh – 2210990598
-- Lokesh Vaid – 2210990545
-- Nipun Kumar – 2210990615
 
 ## Project Type
 Copyright.
